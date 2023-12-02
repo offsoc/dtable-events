@@ -88,11 +88,11 @@ def scan_dtable_automation_rules(db_session):
                 owner_dtable_dict[dtable.org_id].append(dtable.uuid)
                 org_ids.append(dtable.org_id)
     for i in range(0, len(usernames), step):
-        sql = "SELECT username FROM user_auto_rules_statistics_per_month WHERE username in :usernames WHERE is_exceed=1 AND month=:month"
+        sql = "SELECT username FROM user_auto_rules_statistics_per_month WHERE username in :usernames AND month=:month AND is_exceed=1"
         for user_per_month in db_session.execute(sql, {'usernames': usernames[i: i+step], 'month': month}):
             exceed_dtable_uuids += set(owner_dtable_dict[user_per_month.username])
     for i in range(0, len(org_ids), step):
-        sql = "SELECT org_id FROM org_auto_rules_statistics_per_month WHERE org_id in :org_ids WHERE is_exceed=1 AND month=:month"
+        sql = "SELECT org_id FROM org_auto_rules_statistics_per_month WHERE org_id in :org_ids AND month=:month AND is_exceed=1"
         for org_per_month in db_session.execute(sql, {'org_ids': org_ids[i: i+step], 'month': month}):
             exceed_dtable_uuids += set(owner_dtable_dict[org_per_month.org_id])
 
