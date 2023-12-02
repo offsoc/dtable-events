@@ -19,6 +19,7 @@ if not os.path.exists(dtable_web_dir):
 sys.path.insert(0, dtable_web_dir)
 
 try:
+    # settings in dtable-web
     import seahub.settings as seahub_settings
     DTABLE_WEB_SERVICE_URL = getattr(seahub_settings, 'DTABLE_WEB_SERVICE_URL', 'http://127.0.0.1')
     DTABLE_PRIVATE_KEY = getattr(seahub_settings, 'DTABLE_PRIVATE_KEY', '')
@@ -45,6 +46,13 @@ try:
     TRASH_CLEAN_AFTER_DAYS = getattr(seahub_settings, 'TRASH_CLEAN_AFTER_DAYS', 30)
     LICENSE_PATH = getattr(seahub_settings, 'LICENSE_PATH', '/shared/seatable-license.txt')
     IS_PRO_VERSION = getattr(seahub_settings, 'IS_PRO_VERSION', False)
+
+    # env
+    ENV_SEAFILE_CENTRAL_CONF_DIR = os.environ['SEAFILE_CENTRAL_CONF_DIR']
+    if ENV_SEAFILE_CENTRAL_CONF_DIR:
+        ENV_CCNET_CONF_PATH = os.path.join(ENV_SEAFILE_CENTRAL_CONF_DIR, 'ccnet.conf')
+    elif 'CCNET_CONF_DIR' in os.environ:
+        ENV_CCNET_CONF_PATH = os.path.join(os.environ['CCNET_CONF_DIR'], 'ccnet.conf')
 except Exception as e:
     logger.critical("Can not import dtable_web settings: %s." % e)
     raise RuntimeError("Can not import dtable_web settings: %s" % e)

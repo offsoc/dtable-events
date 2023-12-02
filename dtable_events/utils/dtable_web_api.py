@@ -130,3 +130,13 @@ class DTableWebAPI:
             'type': msg_type
         }, headers=headers)
         return parse_response(resp)
+
+    def internal_roles(self):
+        logger.debug('internal roles')
+        url = '%(server_url)s/api/v2.1/internal-roles/?from=dtable_events' % {
+            'server_url': self.dtable_web_service_url
+        }
+        token = jwt.encode({'is_internal': True}, DTABLE_PRIVATE_KEY, algorithm='HS256')
+        headers = {'Authorization': 'Token ' + token}
+        resp = requests.get(url, headers=headers)
+        return parse_response(resp)

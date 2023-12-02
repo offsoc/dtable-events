@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from datetime import datetime, timedelta
 from threading import Thread
 
@@ -63,16 +64,43 @@ def scan_dtable_automation_rules(db_session):
     per_day_check_time = datetime.utcnow() - timedelta(hours=23)
     per_week_check_time = datetime.utcnow() - timedelta(days=6)
     per_month_check_time = datetime.utcnow() - timedelta(days=27)  # consider the least month-days 28 in February (the 2nd month) in common years
-    rules = db_session.execute(sql, {
+    rules = list(db_session.execute(sql, {
         'per_day_check_time': per_day_check_time,
         'per_week_check_time': per_week_check_time,
         'per_month_check_time': per_month_check_time
-    })
+    }))
+
+    dtable_uuids = list({rule.dtable_uuid for rule in rules})
+    step = 1000
+    usernames = []
+    org_ids = []
+    owner_dtable_dict = defaultdict(list)  # username/org_id: [dtable_uuid...]
+    exceed_dtable_uuids = set()
+    month = str(datetime.today())[:7]
+    for i in range(0, len(rules), step):
+        sql = "SELECT d.uuid, w.owner, w.org_id FROM dtables d JOIN workspaces w ON d.workspace_id=workspace.id WHERE d.uuid IN :dtable_uuids"
+        for dtable in db_session.execute(sql, {'dtable_uuids': dtable_uuids[i, i+step]}):
+            if dtable.org_id == -1 and '@seafile_group' not in dtable.owner:
+                owner_dtable_dict[dtable.owner].append(dtable.uuid)
+                usernames.append(dtable.owner)
+            elif dtable.org_id != -1:
+                owner_dtable_dict[dtable.org_id].append(dtable.uuid)
+                org_ids.append(dtable.org_id)
+    for i in range(0, len(usernames), step):
+        sql = "SELECT username FROM user_auto_rules_statistics_per_month WHERE username in :usernames WHERE is_exceed=1 AND month=:month"
+        for user_per_month in db_session.execute(sql, {'usernames': usernames[i: i+step], 'month': month}):
+            exceed_dtable_uuids += set(owner_dtable_dict[user_per_month.username])
+    for i in range(0, len(org_ids), step):
+        sql = "SELECT org_id FROM org_auto_rules_statistics_per_month WHERE org_id in :org_ids WHERE is_exceed=1 AND month=:month"
+        for org_per_month in db_session.execute(sql, {'org_ids': org_ids[i: i+step], 'month': month}):
+            exceed_dtable_uuids += set(owner_dtable_dict[org_per_month.org_id])
 
     # each base's metadata only requested once and recorded in memory
     # The reason why it doesn't cache metadata in redis is metadatas in interval rules need to be up-to-date
     rule_interval_metadata_cache_manager = RuleIntervalMetadataCacheManager()
     for rule in rules:
+        if rule.dtable_uuid in exceed_dtable_uuids:
+            continue
         try:
             run_regular_execution_rule(rule, db_session, rule_interval_metadata_cache_manager)
         except Exception as e:

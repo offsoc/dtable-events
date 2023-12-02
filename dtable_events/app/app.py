@@ -14,6 +14,7 @@ from dtable_events.notification_rules.handler import NotificationRuleHandler
 from dtable_events.notification_rules.dtable_notification_rules_scanner import DTableNofiticationRulesScanner
 from dtable_events.automations.handler import AutomationRuleHandler
 from dtable_events.automations.dtable_automation_rules_scanner import DTableAutomationRulesScanner
+from dtable_events.automations.dtable_automation_rules_stats_updater import DTableAutomationRulesStatsUpdater
 from dtable_events.webhook.webhook import Webhooker
 from dtable_events.common_dataset.common_dataset_syncer import CommonDatasetSyncer
 from dtable_events.tasks.big_data_storage_stats_worker import BigDataStorageStatsWorker
@@ -47,6 +48,7 @@ class App(object):
             self._dtable_updates_sender = DTableUpdatesSender(config)
             self._dtable_notification_rules_scanner = DTableNofiticationRulesScanner(config)
             self._dtable_automation_rules_scanner = DTableAutomationRulesScanner(config)
+            self._dtable_automation_rules_stats_updater = DTableAutomationRulesStatsUpdater(config)
             self._ldap_syncer = LDAPSyncer(config)
             self._common_dataset_syncer = CommonDatasetSyncer(config)
             self._big_data_storage_stats_worker = BigDataStorageStatsWorker(config)
@@ -78,6 +80,7 @@ class App(object):
             self._dtable_updates_sender.start()              # default True
             self._dtable_notification_rules_scanner.start()  # default True
             self._dtable_automation_rules_scanner.start()    # default True
+            self._dtable_automation_rules_stats_updater.start()  # always True
             self._ldap_syncer.start()                        # default False
             self._common_dataset_syncer.start()              # default True
             self._big_data_storage_stats_worker.start()      # always True
