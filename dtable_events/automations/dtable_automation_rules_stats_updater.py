@@ -54,11 +54,11 @@ class DTableAutomationRulesStatsUpdaterTimer(Thread):
         while True:
             sql = "SELECT username, trigger_count FROM user_auto_rules_statistics_per_month WHERE month=:month LIMIT :offset, :limit"
             users_stats = list(db_session.execute(sql, {'month': month, 'limit': limit, 'offset': offset}))
-            if len(users_stats) < limit:
-                break
             for user_stats in users_stats:
                 username_trigger_count[user_stats.username] = user_stats.trigger_count
                 usernames.append(user_stats.username)
+            if len(users_stats) < limit:
+                break
             offset += limit
         logger.debug('query out %s users', len(usernames))
         # query db user_quota
@@ -163,7 +163,7 @@ class DTableAutomationRulesStatsUpdaterTimer(Thread):
     def run(self):
         sched = BlockingScheduler()
 
-        @sched.scheduled_job('cron', day_of_week='*', hour='*', minute='52')
+        @sched.scheduled_job('cron', day_of_week='*', hour='*', minute='*/30')
         def update():
             self.update_stats()
 

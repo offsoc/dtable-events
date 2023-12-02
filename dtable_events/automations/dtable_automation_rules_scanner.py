@@ -54,8 +54,9 @@ class DTableAutomationRulesScanner(object):
 
 def scan_dtable_automation_rules(db_session):
     sql = '''
-            SELECT `dar`.`id`, `run_condition`, `trigger`, `actions`, `last_trigger_time`, `dtable_uuid`, `trigger_count`, `org_id`, dar.`creator` FROM dtable_automation_rules dar
+            SELECT `dar`.`id`, `run_condition`, `trigger`, `actions`, `last_trigger_time`, `dtable_uuid`, `trigger_count`, dar.`creator`, w.`owner`, w.`org_id` FROM dtable_automation_rules dar
             JOIN dtables d ON dar.dtable_uuid=d.uuid
+            JOIN workspaces w ON d.workspace_id=w.id
             WHERE ((run_condition='per_day' AND (last_trigger_time<:per_day_check_time OR last_trigger_time IS NULL))
             OR (run_condition='per_week' AND (last_trigger_time<:per_week_check_time OR last_trigger_time IS NULL))
             OR (run_condition='per_month' AND (last_trigger_time<:per_month_check_time OR last_trigger_time IS NULL)))

@@ -2927,6 +2927,7 @@ class AutomationRule:
         self.trigger_count = options.get('trigger_count', None)
         self.org_id = options.get('org_id', None)
         self.creator = options.get('creator', None)
+        self.owner = options.get('owner', None)
         self.data = data
         self.db_session = db_session
 
@@ -3469,8 +3470,9 @@ class AutomationRule:
             sqls = [set_last_trigger_time_sql]
             if self.org_id:
                 if self.org_id == -1:
-                    sqls.append(set_statistic_sql_user)
-                    sqls.append(set_statistic_sql_user_per_month)
+                    if '@seafile_group' not in self.owner:
+                        sqls.append(set_statistic_sql_user)
+                        sqls.append(set_statistic_sql_user_per_month)
                 else:
                     sqls.append(set_statistic_sql_org)
                     sqls.append(set_statistic_sql_org_per_month)
