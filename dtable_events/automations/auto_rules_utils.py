@@ -9,7 +9,7 @@ from dtable_events.utils import uuid_str_to_32_chars
 logger = logging.getLogger(__name__)
 
 
-def can_trgger_by_dtable(dtable_uuid, db_session):
+def can_trigger_by_dtable(dtable_uuid, db_session):
     """
     :return: workspace -> obj with `owner` and `org_id` or None, can_trigger -> bool
     """
@@ -63,7 +63,7 @@ def scan_triggered_automation_rules(event_data, db_session, per_minute_trigger_l
     if not rule:
         return
 
-    workspace, can_trigger = can_trgger_by_dtable(dtable_uuid, db_session)
+    workspace, can_trigger = can_trigger_by_dtable(dtable_uuid, db_session)
     if not can_trigger:
         return
 

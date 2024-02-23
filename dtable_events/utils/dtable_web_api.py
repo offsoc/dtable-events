@@ -139,4 +139,4 @@ class DTableWebAPI:
         token = jwt.encode({'is_internal': True}, DTABLE_PRIVATE_KEY, algorithm='HS256')
         headers = {'Authorization': 'Token ' + token}
         resp = requests.get(url, headers=headers)
-        return parse_response(resp)
+        return parse_response(resp).get('roles', [])

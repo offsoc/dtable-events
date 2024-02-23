@@ -15,6 +15,7 @@ from dateutil import parser
 
 from seaserv import seafile_api
 from dtable_events.automations.models import get_third_party_account
+from dtable_events.automations.auto_rules_stats_updater import auto_rules_stats_updater
 from dtable_events.app.metadata_cache_managers import BaseMetadataCacheManager
 from dtable_events.app.event_redis import redis_cache
 from dtable_events.app.config import DTABLE_WEB_SERVICE_URL, DTABLE_PRIVATE_KEY, \
@@ -3480,19 +3481,22 @@ class AutomationRule:
             cur_date = datetime.now().date()
             cur_year, cur_month = cur_date.year, cur_date.month
             trigger_date = date(year=cur_year, month=cur_month, day=1)
+            sql_data = {
+                'rule_id': self.rule_id,
+                'trigger_time': datetime.utcnow(),
+                'trigger_date': trigger_date,
+                'trigger_count': self.trigger_count + 1,
+                'username': self.creator,
+                'org_id': self.org_id,
+                'month': str(date.today())[:7]
+            }
             for sql in sqls:
-                self.db_session.execute(sql, {
-                    'rule_id': self.rule_id,
-                    'trigger_time': datetime.utcnow(),
-                    'trigger_date': trigger_date,
-                    'trigger_count': self.trigger_count + 1,
-                    'username': self.creator,
-                    'org_id': self.org_id,
-                    'month': str(date.today())[:7]
-                })
+                self.db_session.execute(sql, sql_data)
             self.db_session.commit()
         except Exception as e:
             logger.exception('set rule: %s error: %s', self.rule_id, e)
+
+        auto_rules_stats_updater.add_info(sql_data)
 
         if self.run_condition == PER_UPDATE and self.per_minute_trigger_limit > 0:
             trigger_times = redis_cache.get(self.cache_key)

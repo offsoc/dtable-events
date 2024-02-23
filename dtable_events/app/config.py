@@ -48,11 +48,8 @@ try:
     IS_PRO_VERSION = getattr(seahub_settings, 'IS_PRO_VERSION', False)
 
     # env
-    ENV_SEAFILE_CENTRAL_CONF_DIR = os.environ.get('SEAFILE_CENTRAL_CONF_DIR')
-    if ENV_SEAFILE_CENTRAL_CONF_DIR:
-        ENV_CCNET_CONF_PATH = os.path.join(ENV_SEAFILE_CENTRAL_CONF_DIR, 'ccnet.conf')
-    elif 'CCNET_CONF_DIR' in os.environ:
-        ENV_CCNET_CONF_PATH = os.path.join(os.environ['CCNET_CONF_DIR'], 'ccnet.conf')
+    ENV_SEAFILE_CENTRAL_CONF_DIR = os.environ.get('SEAFILE_CENTRAL_CONF_DIR', '')
+    ENV_CCNET_CONF_PATH = os.path.join(ENV_SEAFILE_CENTRAL_CONF_DIR, 'ccnet.conf')
 except Exception as e:
     logger.critical("Can not import dtable_web settings: %s." % e)
     raise RuntimeError("Can not import dtable_web settings: %s" % e)
